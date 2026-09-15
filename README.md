@@ -74,9 +74,11 @@ non-AWS-scoped hooks repo ever exists.
 Add the hooks you want to that repo's `.pre-commit-config.yaml`:
 
 ```yaml
+default_install_hook_types: [pre-commit, pre-push]
+
 repos:
-  - repo: <git URL of this repo, once pushed>
-    rev: <tag>
+  - repo: https://github.com/MrDamienJones/aws-precommit-hooks
+    rev: v1.0.0
     hooks:
       - id: no-real-aws-account-ids
       - id: no-destroy-removal-policy
@@ -85,14 +87,9 @@ repos:
       - id: no-push-from-main
 ```
 
-`no-push-from-main` runs at the `pre-push` git hook stage, not the default `commit` stage.
-Add `default_install_hook_types: [pre-commit, pre-push]` at the top of the consuming
-repo's `.pre-commit-config.yaml` so a plain `pre-commit install` enables both (otherwise
-`pre-push` hooks are silently never installed and never run).
-
-While this repo has no remote yet, point `repo:` at its local path instead
-(works for local `pre-commit run`, but not CI runners - they won't have this
-path). Swap it for the real URL and pin `rev` to a tag as soon as this is pushed.
+`no-push-from-main` runs at the `pre-push` git hook stage, not the default `commit` stage -
+the `default_install_hook_types` line above is what makes a plain `pre-commit install`
+enable both (otherwise `pre-push` hooks are silently never installed and never run).
 
 ## Tests
 
@@ -113,7 +110,14 @@ pre-commit run --all-files
 
 ## Releasing a new version
 
-Tag a commit (`git tag v0.2.0 && git push --tags`) once this has a remote, then bump
-`rev:` in each consuming repo's `.pre-commit-config.yaml` to that tag (or let
+`main` is protected on GitHub (PR required, no direct pushes, applies to admins too) -
+land changes via a branch + PR, then from `main`:
+
+```bat
+git tag vX.Y.Z -m "..."
+git push origin vX.Y.Z
+```
+
+Then bump `rev:` in each consuming repo's `.pre-commit-config.yaml` to that tag (or let
 [Renovate's pre-commit manager](https://docs.renovatebot.com/modules/manager/pre-commit/)
 do it automatically).
