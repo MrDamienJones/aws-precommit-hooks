@@ -1,0 +1,47 @@
+- id: no-real-aws-account-ids
+  name: Block real AWS account IDs
+  description: >
+    Fails if a committed file contains a 12-digit number shaped like a real
+    AWS account ID that isn't a recognised placeholder.
+  entry: no-real-aws-account-ids
+  language: python
+  types: [text]
+
+- id: no-destroy-removal-policy
+  name: Require ack on RemovalPolicy.DESTROY
+  description: >
+    Fails if RemovalPolicy.DESTROY is committed without an explicit
+    '# allow-destroy-policy' marker on the line.
+  entry: no-destroy-removal-policy
+  language: python
+  types_or: [python, ts]
+
+- id: no-committed-iac-state
+  name: Block committed CDK/Terraform state files
+  description: >
+    Fails if cdk.context.json or a Terraform .tfstate file is committed.
+  entry: no-committed-iac-state
+  language: python
+  types: [file]
+
+- id: require-cdk-nag-present
+  name: Require cdk-nag wiring in CDK entrypoints
+  description: >
+    Fails if a file constructs a cdk.App() but never mentions
+    AwsSolutionsChecks. A cheap presence check, not real verification -
+    pair with a pytest test that actually synthesizes the stack.
+  entry: require-cdk-nag-present
+  language: python
+  types: [python]
+
+- id: no-push-from-main
+  name: Block direct push from main/master
+  description: >
+    Fails a `git push` made while checked out on main/master directly. A
+    local speed bump, not real enforcement - pair with branch protection on
+    the remote.
+  entry: no-push-from-main
+  language: python
+  stages: [pre-push]
+  always_run: true
+  pass_filenames: false

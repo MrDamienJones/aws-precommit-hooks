@@ -1,0 +1,29 @@
+[project]
+name = "aws-precommit-hooks"
+version = "0.1.0"
+description = "Shared pre-commit hooks for AWS repos, reused across unrelated accounts/orgs"
+requires-python = ">=3.9"
+
+[project.scripts]
+no-real-aws-account-ids = "aws_precommit_hooks.check_aws_account_ids:main"
+no-destroy-removal-policy = "aws_precommit_hooks.check_destroy_removal_policy:main"
+no-committed-iac-state = "aws_precommit_hooks.check_committed_iac_state:main"
+require-cdk-nag-present = "aws_precommit_hooks.check_cdk_nag_present:main"
+no-push-from-main = "aws_precommit_hooks.check_no_push_from_main:main"
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["aws_precommit_hooks*"]
+
+[tool.ruff]
+line-length = 110
+target-version = "py39"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP"]
+
+[tool.ruff.lint.isort]
+combine-as-imports = true

@@ -1,0 +1,63 @@
+default_install_hook_types: [pre-commit, pre-push]
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-merge-conflict
+      - id: check-added-large-files
+        args: [--maxkb=1024]
+      - id: mixed-line-ending
+
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.5.0
+    hooks:
+      - id: detect-secrets
+        args: [--baseline, .secrets.baseline]
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.6.9
+    hooks:
+      - id: ruff
+        args: [--fix]
+      - id: ruff-format
+
+  # Dogfooding this repo's own hooks against itself. `repo: local` gives pre-commit
+  # no real repo to install from (additional_dependencies: ["."] resolves inside its
+  # own placeholder dir, not ours), so these call the modules directly via `python -m`
+  # instead - `pip install -e .` (via requirements-dev.txt) already put this package
+  # on the active venv's path. `python -m` has no path separators to trip over, so
+  # it's identical on Windows and Linux/Mac as long as pre-commit is run with that
+  # venv active (true both for local dev and CI, which installs requirements-dev.txt
+  # into its own venv before running pre-commit).
+  - repo: local
+    hooks:
+      - id: no-real-aws-account-ids
+        name: Block real AWS account IDs
+        entry: python -m aws_precommit_hooks.check_aws_account_ids
+        language: system
+        types: [text]
+      - id: no-destroy-removal-policy
+        name: Require ack on RemovalPolicy.DESTROY
+        entry: python -m aws_precommit_hooks.check_destroy_removal_policy
+        language: system
+        types_or: [python, ts]
+      - id: no-committed-iac-state
+        name: Block committed CDK/Terraform state files
+        entry: python -m aws_precommit_hooks.check_committed_iac_state
+        language: system
+        types: [file]
+      - id: require-cdk-nag-present
+        name: Require cdk-nag wiring in CDK entrypoints
+        entry: python -m aws_precommit_hooks.check_cdk_nag_present
+        language: system
+        types: [python]
+      - id: no-push-from-main
+        name: Block direct push from main/master
+        entry: python -m aws_precommit_hooks.check_no_push_from_main
+        language: system
+        stages: [pre-push]
+        always_run: true
+        pass_filenames: false
